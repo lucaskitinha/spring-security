@@ -3,19 +3,19 @@ package dio.spring.security.model;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@EnableAspectJAutoProxy
-@Table(name = "user")
+@Table(name = "users")
+@Entity
 public class User {
 
 	@Id

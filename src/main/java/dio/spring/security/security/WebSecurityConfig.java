@@ -1,5 +1,6 @@
 package dio.spring.security.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,7 +9,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -16,15 +17,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfiguration {
+public class WebSecurityConfig {
 
-	private final JWTFilter jwtFilter;
-	private final AuthenticationProvider authenticationProvider;
+	@Autowired
+	private JWTFilter jwtFilter;
 
-	public WebSecurityConfig(JWTFilter jwtFilter, AuthenticationProvider authenticationProvider) {
-		this.jwtFilter = jwtFilter;
-		this.authenticationProvider = authenticationProvider;
-	}
 
 	@Bean
 	public BCryptPasswordEncoder encoder(){
@@ -33,16 +30,15 @@ public class WebSecurityConfig extends WebSecurityConfiguration {
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		return http.csrf(csrf -> csrf.disable())
+		return http.csrf(AbstractHttpConfigurer::disable)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeRequests((auth) -> auth
-				.requestMatchers("/h2-console/**").permitAll()
+				.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.POST,"/login").permitAll()
 				.requestMatchers(HttpMethod.POST,"/users").permitAll()
 				.requestMatchers(HttpMethod.GET,"/users").hasAnyRole("USERS","MANAGERS")
 				.requestMatchers("/managers").hasAnyRole("MANAGERS")
 				.anyRequest().authenticated())
-				.addFilterBefore(new JWTFilter(), UsernamePasswordAuthenticationFilter.class).build();
+				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}
 
 	@Bean
